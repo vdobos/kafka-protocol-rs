@@ -17,7 +17,7 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
@@ -29,42 +29,42 @@ pub struct UpdateMetadataPartitionState {
 
     /// The partition index.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub partition_index: i32,
 
     /// The controller epoch.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub controller_epoch: i32,
 
     /// The ID of the broker which is the current partition leader.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub leader: super::BrokerId,
 
     /// The leader epoch of this partition.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub leader_epoch: i32,
 
     /// The brokers which are in the ISR for this partition.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub isr: Vec<super::BrokerId>,
 
     /// The Zookeeper version.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub zk_version: i32,
 
     /// All the replicas of this partition.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub replicas: Vec<super::BrokerId>,
 
     /// The replicas of this partition which are offline.
     /// 
-    /// Supported API versions: 4-7
+    /// Supported API versions: 4-8
     pub offline_replicas: Vec<super::BrokerId>,
 
     /// Other tagged fields
@@ -234,27 +234,27 @@ impl Default for UpdateMetadataPartitionState {
 }
 
 impl Message for UpdateMetadataPartitionState {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct UpdateMetadataTopicState {
     /// The topic name.
     /// 
-    /// Supported API versions: 5-7
+    /// Supported API versions: 5-8
     pub topic_name: super::TopicName,
 
     /// The topic id.
     /// 
-    /// Supported API versions: 7
+    /// Supported API versions: 7-8
     pub topic_id: Uuid,
 
     /// The partition that we would like to update.
     /// 
-    /// Supported API versions: 5-7
+    /// Supported API versions: 5-8
     pub partition_states: Vec<UpdateMetadataPartitionState>,
 
     /// Other tagged fields
@@ -406,32 +406,32 @@ impl Default for UpdateMetadataTopicState {
 }
 
 impl Message for UpdateMetadataTopicState {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct UpdateMetadataEndpoint {
     /// The port of this endpoint
     /// 
-    /// Supported API versions: 1-7
+    /// Supported API versions: 1-8
     pub port: i32,
 
     /// The hostname of this endpoint
     /// 
-    /// Supported API versions: 1-7
+    /// Supported API versions: 1-8
     pub host: StrBytes,
 
     /// The listener name.
     /// 
-    /// Supported API versions: 3-7
+    /// Supported API versions: 3-8
     pub listener: StrBytes,
 
     /// The security protocol type.
     /// 
-    /// Supported API versions: 1-7
+    /// Supported API versions: 1-8
     pub security_protocol: i16,
 
     /// Other tagged fields
@@ -604,17 +604,17 @@ impl Default for UpdateMetadataEndpoint {
 }
 
 impl Message for UpdateMetadataEndpoint {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct UpdateMetadataBroker {
     /// The broker id.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub id: super::BrokerId,
 
     /// The broker hostname.
@@ -629,12 +629,12 @@ pub struct UpdateMetadataBroker {
 
     /// The broker endpoints.
     /// 
-    /// Supported API versions: 1-7
+    /// Supported API versions: 1-8
     pub endpoints: Vec<UpdateMetadataEndpoint>,
 
     /// The rack which this broker belongs to.
     /// 
-    /// Supported API versions: 2-7
+    /// Supported API versions: 2-8
     pub rack: Option<StrBytes>,
 
     /// Other tagged fields
@@ -788,27 +788,32 @@ impl Default for UpdateMetadataBroker {
 }
 
 impl Message for UpdateMetadataBroker {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct UpdateMetadataRequest {
     /// The controller id.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub controller_id: super::BrokerId,
+
+    /// If KRaft controller id is used during migration. See KIP-866
+    /// 
+    /// Supported API versions: 8
+    pub is_k_raft_controller: bool,
 
     /// The controller epoch.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub controller_epoch: i32,
 
     /// The broker epoch.
     /// 
-    /// Supported API versions: 5-7
+    /// Supported API versions: 5-8
     pub broker_epoch: i64,
 
     /// In older versions of this RPC, each partition that we would like to update.
@@ -818,12 +823,12 @@ pub struct UpdateMetadataRequest {
 
     /// In newer versions of this RPC, each topic that we would like to update.
     /// 
-    /// Supported API versions: 5-7
+    /// Supported API versions: 5-8
     pub topic_states: Vec<UpdateMetadataTopicState>,
 
     /// 
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub live_brokers: Vec<UpdateMetadataBroker>,
 
     /// Other tagged fields
@@ -841,6 +846,13 @@ impl Builder for UpdateMetadataRequest {
 impl Encodable for UpdateMetadataRequest {
     fn encode<B: ByteBufMut>(&self, buf: &mut B, version: i16) -> Result<(), EncodeError> {
         types::Int32.encode(buf, &self.controller_id)?;
+        if version >= 8 {
+            types::Boolean.encode(buf, &self.is_k_raft_controller)?;
+        } else {
+            if self.is_k_raft_controller {
+                return Err(EncodeError)
+            }
+        }
         types::Int32.encode(buf, &self.controller_epoch)?;
         if version >= 5 {
             types::Int64.encode(buf, &self.broker_epoch)?;
@@ -883,6 +895,13 @@ impl Encodable for UpdateMetadataRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         total_size += types::Int32.compute_size(&self.controller_id)?;
+        if version >= 8 {
+            total_size += types::Boolean.compute_size(&self.is_k_raft_controller)?;
+        } else {
+            if self.is_k_raft_controller {
+                return Err(EncodeError)
+            }
+        }
         total_size += types::Int32.compute_size(&self.controller_epoch)?;
         if version >= 5 {
             total_size += types::Int64.compute_size(&self.broker_epoch)?;
@@ -927,6 +946,11 @@ impl Encodable for UpdateMetadataRequest {
 impl Decodable for UpdateMetadataRequest {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
         let controller_id = types::Int32.decode(buf)?;
+        let is_k_raft_controller = if version >= 8 {
+            types::Boolean.decode(buf)?
+        } else {
+            false
+        };
         let controller_epoch = types::Int32.decode(buf)?;
         let broker_epoch = if version >= 5 {
             types::Int64.decode(buf)?
@@ -965,6 +989,7 @@ impl Decodable for UpdateMetadataRequest {
         }
         Ok(Self {
             controller_id,
+            is_k_raft_controller,
             controller_epoch,
             broker_epoch,
             ungrouped_partition_states,
@@ -979,6 +1004,7 @@ impl Default for UpdateMetadataRequest {
     fn default() -> Self {
         Self {
             controller_id: (0).into(),
+            is_k_raft_controller: false,
             controller_epoch: 0,
             broker_epoch: -1,
             ungrouped_partition_states: Default::default(),
@@ -990,7 +1016,7 @@ impl Default for UpdateMetadataRequest {
 }
 
 impl Message for UpdateMetadataRequest {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
 impl HeaderVersion for UpdateMetadataRequest {

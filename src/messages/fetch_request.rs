@@ -17,39 +17,169 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-13
+/// Valid versions: 0-15
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
+#[builder(default)]
+pub struct ReplicaState {
+    /// The replica ID of the follower, or -1 if this request is from a consumer.
+    /// 
+    /// Supported API versions: 15
+    pub replica_id: super::BrokerId,
+
+    /// The epoch of this follower, or -1 if not available.
+    /// 
+    /// Supported API versions: 15
+    pub replica_epoch: i64,
+
+    /// Other tagged fields
+    pub unknown_tagged_fields: BTreeMap<i32, Vec<u8>>,
+}
+
+impl Builder for ReplicaState {
+    type Builder = ReplicaStateBuilder;
+
+    fn builder() -> Self::Builder{
+        ReplicaStateBuilder::default()
+    }
+}
+
+impl Encodable for ReplicaState {
+    fn encode<B: ByteBufMut>(&self, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+        if version >= 15 {
+            types::Int32.encode(buf, &self.replica_id)?;
+        } else {
+            if self.replica_id != -1 {
+                return Err(EncodeError)
+            }
+        }
+        if version >= 15 {
+            types::Int64.encode(buf, &self.replica_epoch)?;
+        } else {
+            if self.replica_epoch != -1 {
+                return Err(EncodeError)
+            }
+        }
+        if version >= 12 {
+            let num_tagged_fields = self.unknown_tagged_fields.len();
+            if num_tagged_fields > std::u32::MAX as usize {
+                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                return Err(EncodeError);
+            }
+            types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
+
+            write_unknown_tagged_fields(buf, 0.., &self.unknown_tagged_fields)?;
+        }
+        Ok(())
+    }
+    fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
+        let mut total_size = 0;
+        if version >= 15 {
+            total_size += types::Int32.compute_size(&self.replica_id)?;
+        } else {
+            if self.replica_id != -1 {
+                return Err(EncodeError)
+            }
+        }
+        if version >= 15 {
+            total_size += types::Int64.compute_size(&self.replica_epoch)?;
+        } else {
+            if self.replica_epoch != -1 {
+                return Err(EncodeError)
+            }
+        }
+        if version >= 12 {
+            let num_tagged_fields = self.unknown_tagged_fields.len();
+            if num_tagged_fields > std::u32::MAX as usize {
+                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                return Err(EncodeError);
+            }
+            total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
+
+            total_size += compute_unknown_tagged_fields_size(&self.unknown_tagged_fields)?;
+        }
+        Ok(total_size)
+    }
+}
+
+impl Decodable for ReplicaState {
+    fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
+        let replica_id = if version >= 15 {
+            types::Int32.decode(buf)?
+        } else {
+            (-1).into()
+        };
+        let replica_epoch = if version >= 15 {
+            types::Int64.decode(buf)?
+        } else {
+            -1
+        };
+        let mut unknown_tagged_fields = BTreeMap::new();
+        if version >= 12 {
+            let num_tagged_fields = types::UnsignedVarInt.decode(buf)?;
+            for _ in 0..num_tagged_fields {
+                let tag: u32 = types::UnsignedVarInt.decode(buf)?;
+                let size: u32 = types::UnsignedVarInt.decode(buf)?;
+                let mut unknown_value = vec![0; size as usize];
+                buf.try_copy_to_slice(&mut unknown_value)?;
+                unknown_tagged_fields.insert(tag as i32, unknown_value);
+            }
+        }
+        Ok(Self {
+            replica_id,
+            replica_epoch,
+            unknown_tagged_fields,
+        })
+    }
+}
+
+impl Default for ReplicaState {
+    fn default() -> Self {
+        Self {
+            replica_id: (-1).into(),
+            replica_epoch: -1,
+            unknown_tagged_fields: BTreeMap::new(),
+        }
+    }
+}
+
+impl Message for ReplicaState {
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 15 };
+}
+
+/// Valid versions: 0-15
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct FetchPartition {
     /// The partition index.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub partition: i32,
 
     /// The current leader epoch of the partition.
     /// 
-    /// Supported API versions: 9-13
+    /// Supported API versions: 9-15
     pub current_leader_epoch: i32,
 
     /// The message offset.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub fetch_offset: i64,
 
     /// The epoch of the last fetched record or -1 if there is none
     /// 
-    /// Supported API versions: 12-13
+    /// Supported API versions: 12-15
     pub last_fetched_epoch: i32,
 
     /// The earliest available offset of the follower replica.  The field is only used when the request is sent by the follower.
     /// 
-    /// Supported API versions: 5-13
+    /// Supported API versions: 5-15
     pub log_start_offset: i64,
 
     /// The maximum bytes to fetch from this partition.  See KIP-74 for cases where this limit may not be honored.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub partition_max_bytes: i32,
 
     /// Other tagged fields
@@ -184,10 +314,10 @@ impl Default for FetchPartition {
 }
 
 impl Message for FetchPartition {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 13 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 15 };
 }
 
-/// Valid versions: 0-13
+/// Valid versions: 0-15
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
@@ -199,12 +329,12 @@ pub struct FetchTopic {
 
     /// The unique topic ID
     /// 
-    /// Supported API versions: 13
+    /// Supported API versions: 13-15
     pub topic_id: Uuid,
 
     /// The partitions to fetch.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub partitions: Vec<FetchPartition>,
 
     /// Other tagged fields
@@ -332,10 +462,10 @@ impl Default for FetchTopic {
 }
 
 impl Message for FetchTopic {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 13 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 15 };
 }
 
-/// Valid versions: 0-13
+/// Valid versions: 0-15
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
@@ -347,12 +477,12 @@ pub struct ForgottenTopic {
 
     /// The unique topic ID
     /// 
-    /// Supported API versions: 13
+    /// Supported API versions: 13-15
     pub topic_id: Uuid,
 
     /// The partitions indexes to forget.
     /// 
-    /// Supported API versions: 7-13
+    /// Supported API versions: 7-15
     pub partitions: Vec<i32>,
 
     /// Other tagged fields
@@ -496,67 +626,72 @@ impl Default for ForgottenTopic {
 }
 
 impl Message for ForgottenTopic {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 13 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 15 };
 }
 
-/// Valid versions: 0-13
+/// Valid versions: 0-15
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct FetchRequest {
     /// The clusterId if known. This is used to validate metadata fetches prior to broker registration.
     /// 
-    /// Supported API versions: 12-13
+    /// Supported API versions: 12-15
     pub cluster_id: Option<StrBytes>,
 
     /// The broker ID of the follower, of -1 if this request is from a consumer.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-14
     pub replica_id: super::BrokerId,
+
+    /// 
+    /// 
+    /// Supported API versions: 15
+    pub replica_state: ReplicaState,
 
     /// The maximum time in milliseconds to wait for the response.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub max_wait_ms: i32,
 
     /// The minimum bytes to accumulate in the response.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub min_bytes: i32,
 
     /// The maximum bytes to fetch.  See KIP-74 for cases where this limit may not be honored.
     /// 
-    /// Supported API versions: 3-13
+    /// Supported API versions: 3-15
     pub max_bytes: i32,
 
     /// This setting controls the visibility of transactional records. Using READ_UNCOMMITTED (isolation_level = 0) makes all records visible. With READ_COMMITTED (isolation_level = 1), non-transactional and COMMITTED transactional records are visible. To be more concrete, READ_COMMITTED returns all data from offsets smaller than the current LSO (last stable offset), and enables the inclusion of the list of aborted transactions in the result, which allows consumers to discard ABORTED transactional records
     /// 
-    /// Supported API versions: 4-13
+    /// Supported API versions: 4-15
     pub isolation_level: i8,
 
     /// The fetch session ID.
     /// 
-    /// Supported API versions: 7-13
+    /// Supported API versions: 7-15
     pub session_id: i32,
 
     /// The fetch session epoch, which is used for ordering requests in a session.
     /// 
-    /// Supported API versions: 7-13
+    /// Supported API versions: 7-15
     pub session_epoch: i32,
 
     /// The topics to fetch.
     /// 
-    /// Supported API versions: 0-13
+    /// Supported API versions: 0-15
     pub topics: Vec<FetchTopic>,
 
     /// In an incremental fetch request, the partitions to remove.
     /// 
-    /// Supported API versions: 7-13
+    /// Supported API versions: 7-15
     pub forgotten_topics_data: Vec<ForgottenTopic>,
 
     /// Rack ID of the consumer making this request
     /// 
-    /// Supported API versions: 11-13
+    /// Supported API versions: 11-15
     pub rack_id: StrBytes,
 
     /// Other tagged fields
@@ -573,7 +708,13 @@ impl Builder for FetchRequest {
 
 impl Encodable for FetchRequest {
     fn encode<B: ByteBufMut>(&self, buf: &mut B, version: i16) -> Result<(), EncodeError> {
-        types::Int32.encode(buf, &self.replica_id)?;
+        if version <= 14 {
+            types::Int32.encode(buf, &self.replica_id)?;
+        } else {
+            if self.replica_id != -1 {
+                return Err(EncodeError)
+            }
+        }
         types::Int32.encode(buf, &self.max_wait_ms)?;
         types::Int32.encode(buf, &self.min_bytes)?;
         if version >= 3 {
@@ -616,7 +757,11 @@ impl Encodable for FetchRequest {
             if !self.cluster_id.is_none() {
                 num_tagged_fields += 1;
             }
-            if num_tagged_fields > std::u32::MAX as usize {
+            if version >= 15 {
+                if &self.replica_state != &Default::default() {
+                    num_tagged_fields += 1;
+                }
+            }if num_tagged_fields > std::u32::MAX as usize {
                 error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
                 return Err(EncodeError);
             }
@@ -631,14 +776,31 @@ impl Encodable for FetchRequest {
                 types::UnsignedVarInt.encode(buf, computed_size as u32)?;
                 types::CompactString.encode(buf, &self.cluster_id)?;
             }
-
-            write_unknown_tagged_fields(buf, 1.., &self.unknown_tagged_fields)?;
+            if version >= 15 {
+                if &self.replica_state != &Default::default() {
+                    let computed_size = types::Struct { version }.compute_size(&self.replica_state)?;
+                    if computed_size > std::u32::MAX as usize {
+                        error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                        return Err(EncodeError);
+                    }
+                    types::UnsignedVarInt.encode(buf, 1)?;
+                    types::UnsignedVarInt.encode(buf, computed_size as u32)?;
+                    types::Struct { version }.encode(buf, &self.replica_state)?;
+                }
+            }
+            write_unknown_tagged_fields(buf, 2.., &self.unknown_tagged_fields)?;
         }
         Ok(())
     }
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
-        total_size += types::Int32.compute_size(&self.replica_id)?;
+        if version <= 14 {
+            total_size += types::Int32.compute_size(&self.replica_id)?;
+        } else {
+            if self.replica_id != -1 {
+                return Err(EncodeError)
+            }
+        }
         total_size += types::Int32.compute_size(&self.max_wait_ms)?;
         total_size += types::Int32.compute_size(&self.min_bytes)?;
         if version >= 3 {
@@ -681,7 +843,11 @@ impl Encodable for FetchRequest {
             if !self.cluster_id.is_none() {
                 num_tagged_fields += 1;
             }
-            if num_tagged_fields > std::u32::MAX as usize {
+            if version >= 15 {
+                if &self.replica_state != &Default::default() {
+                    num_tagged_fields += 1;
+                }
+            }if num_tagged_fields > std::u32::MAX as usize {
                 error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
                 return Err(EncodeError);
             }
@@ -696,7 +862,18 @@ impl Encodable for FetchRequest {
                 total_size += types::UnsignedVarInt.compute_size(computed_size as u32)?;
                 total_size += computed_size;
             }
-
+            if version >= 15 {
+                if &self.replica_state != &Default::default() {
+                    let computed_size = types::Struct { version }.compute_size(&self.replica_state)?;
+                    if computed_size > std::u32::MAX as usize {
+                        error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                        return Err(EncodeError);
+                    }
+                    total_size += types::UnsignedVarInt.compute_size(1)?;
+                    total_size += types::UnsignedVarInt.compute_size(computed_size as u32)?;
+                    total_size += computed_size;
+                }
+            }
             total_size += compute_unknown_tagged_fields_size(&self.unknown_tagged_fields)?;
         }
         Ok(total_size)
@@ -706,7 +883,12 @@ impl Encodable for FetchRequest {
 impl Decodable for FetchRequest {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
         let mut cluster_id = None;
-        let replica_id = types::Int32.decode(buf)?;
+        let replica_id = if version <= 14 {
+            types::Int32.decode(buf)?
+        } else {
+            (-1).into()
+        };
+        let mut replica_state = Default::default();
         let max_wait_ms = types::Int32.decode(buf)?;
         let min_bytes = types::Int32.decode(buf)?;
         let max_bytes = if version >= 3 {
@@ -762,6 +944,14 @@ impl Decodable for FetchRequest {
                     0 => {
                         cluster_id = types::CompactString.decode(buf)?;
                     },
+                    1 => {
+                        if version >= 15 {
+                            replica_state = types::Struct { version }.decode(buf)?;
+                        } else {
+                            error!("Tag {} is not valid for version {}", tag, version);
+                            return Err(DecodeError);
+                        }
+                    },
                     _ => {
                         let mut unknown_value = vec![0; size as usize];
                         buf.try_copy_to_slice(&mut unknown_value)?;
@@ -773,6 +963,7 @@ impl Decodable for FetchRequest {
         Ok(Self {
             cluster_id,
             replica_id,
+            replica_state,
             max_wait_ms,
             min_bytes,
             max_bytes,
@@ -791,7 +982,8 @@ impl Default for FetchRequest {
     fn default() -> Self {
         Self {
             cluster_id: None,
-            replica_id: (0).into(),
+            replica_id: (-1).into(),
+            replica_state: Default::default(),
             max_wait_ms: 0,
             min_bytes: 0,
             max_bytes: 0x7fffffff,
@@ -807,7 +999,7 @@ impl Default for FetchRequest {
 }
 
 impl Message for FetchRequest {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 13 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 15 };
 }
 
 impl HeaderVersion for FetchRequest {

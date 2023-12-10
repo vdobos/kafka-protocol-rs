@@ -17,6 +17,8 @@ pub struct Spec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub listeners: Option<Vec<ListenerSpec>>,
     pub name: String,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_version_unstable: Option<bool>,
     pub valid_versions: VersionSpec,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flexible_versions: Option<VersionSpec>,

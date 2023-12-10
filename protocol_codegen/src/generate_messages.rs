@@ -6,6 +6,8 @@ use std::path::Path;
 use failure::Error;
 use git2::{Oid, Repository};
 
+use std::path::MAIN_SEPARATOR;
+
 mod code_writer;
 pub mod expr;
 mod generate;
@@ -15,8 +17,8 @@ mod spec;
 use spec::SpecType;
 
 pub fn run() -> Result<(), Error> {
-    let mut dir = std::fs::canonicalize(std::file!().rsplit_once('/').unwrap().0)?;
-    dir.push("../../src/messages");
+    let mut dir = std::fs::canonicalize(std::file!().rsplit_once(MAIN_SEPARATOR).unwrap().0)?;
+    dir.push(format!("..{separator}..{separator}src{separator}messages", separator = MAIN_SEPARATOR));
     let output_path = std::fs::canonicalize(dir)?;
     let output_path = output_path.to_str().unwrap();
 
@@ -39,9 +41,9 @@ pub fn run() -> Result<(), Error> {
     };
 
     // Checkout the release commit
-    // https://github.com/apache/kafka/releases/tag/3.3.2
+    // https://github.com/apache/kafka/releases/tag/3.6.0
     // checking out a tag with git2 is annoying -- we pin to the tag's commit sha instead
-    let release_commit = "b66af662e61082cb8def576ded1fe5cee37e155f";
+    let release_commit = "60e845626d8a465a8cfe68bb2d7d4b88d622634e";
     println!("Checking out release {}", release_commit);
     let oid = Oid::from_str(release_commit).unwrap();
     let commit = repo
@@ -64,7 +66,7 @@ pub fn run() -> Result<(), Error> {
 
     // Find input files
     let mut input_file_paths = Vec::new();
-    for file in fs::read_dir(kafka_repo.join("clients/src/main/resources/common/message"))? {
+    for file in fs::read_dir(kafka_repo.join(format!("clients{separator}src{separator}main{separator}resources{separator}common{separator}message", separator = MAIN_SEPARATOR)))? {
         let file = file?;
         if file.file_type()?.is_file() {
             let path = file.path();
@@ -99,9 +101,8 @@ pub fn run() -> Result<(), Error> {
     for input_file_path in &input_file_paths {
         let spec = parse::parse(input_file_path)?;
         let spec_meta = (spec.type_, spec.api_key);
-
         let (module_name, struct_name) = generate::generate(output_path, spec, &mut entity_types)?;
-
+		
         match spec_meta {
             (SpecType::Request, Some(k)) => {
                 request_types.insert(k, struct_name.clone());

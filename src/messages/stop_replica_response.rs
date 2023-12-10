@@ -17,24 +17,24 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-3
+/// Valid versions: 0-4
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct StopReplicaPartitionError {
     /// The topic name.
     /// 
-    /// Supported API versions: 0-3
+    /// Supported API versions: 0-4
     pub topic_name: super::TopicName,
 
     /// The partition index.
     /// 
-    /// Supported API versions: 0-3
+    /// Supported API versions: 0-4
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no partition error.
     /// 
-    /// Supported API versions: 0-3
+    /// Supported API versions: 0-4
     pub error_code: i16,
 
     /// Other tagged fields
@@ -134,22 +134,22 @@ impl Default for StopReplicaPartitionError {
 }
 
 impl Message for StopReplicaPartitionError {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 3 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 4 };
 }
 
-/// Valid versions: 0-3
+/// Valid versions: 0-4
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct StopReplicaResponse {
     /// The top-level error code, or 0 if there was no top-level error.
     /// 
-    /// Supported API versions: 0-3
+    /// Supported API versions: 0-4
     pub error_code: i16,
 
     /// The responses for each partition.
     /// 
-    /// Supported API versions: 0-3
+    /// Supported API versions: 0-4
     pub partition_errors: Vec<StopReplicaPartitionError>,
 
     /// Other tagged fields
@@ -244,7 +244,7 @@ impl Default for StopReplicaResponse {
 }
 
 impl Message for StopReplicaResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 3 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 4 };
 }
 
 impl HeaderVersion for StopReplicaResponse {

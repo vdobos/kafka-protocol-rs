@@ -165,7 +165,7 @@ pub struct TxnOffsetCommitRequestTopic {
     /// Supported API versions: 0-3
     pub name: super::TopicName,
 
-    /// The partitions inside the topic that we want to committ offsets for.
+    /// The partitions inside the topic that we want to commit offsets for.
     /// 
     /// Supported API versions: 0-3
     pub partitions: Vec<TxnOffsetCommitRequestPartition>,

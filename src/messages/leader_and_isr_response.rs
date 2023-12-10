@@ -17,7 +17,7 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-6
+/// Valid versions: 0-7
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
@@ -29,12 +29,12 @@ pub struct LeaderAndIsrPartitionError {
 
     /// The partition index.
     /// 
-    /// Supported API versions: 0-6
+    /// Supported API versions: 0-7
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no error.
     /// 
-    /// Supported API versions: 0-6
+    /// Supported API versions: 0-7
     pub error_code: i16,
 
     /// Other tagged fields
@@ -142,17 +142,17 @@ impl Default for LeaderAndIsrPartitionError {
 }
 
 impl Message for LeaderAndIsrPartitionError {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 6 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
 }
 
-/// Valid versions: 0-6
+/// Valid versions: 0-7
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct LeaderAndIsrTopicError {
     /// Each partition.
     /// 
-    /// Supported API versions: 5-6
+    /// Supported API versions: 5-7
     pub partition_errors: Vec<LeaderAndIsrPartitionError>,
 
     /// Other tagged fields
@@ -267,17 +267,17 @@ impl Default for LeaderAndIsrTopicError {
 }
 
 impl Message for LeaderAndIsrTopicError {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 6 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
 }
 
-/// Valid versions: 0-6
+/// Valid versions: 0-7
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct LeaderAndIsrResponse {
     /// The error code, or 0 if there was no error.
     /// 
-    /// Supported API versions: 0-6
+    /// Supported API versions: 0-7
     pub error_code: i16,
 
     /// Each partition in v0 to v4 message.
@@ -287,7 +287,7 @@ pub struct LeaderAndIsrResponse {
 
     /// Each topic
     /// 
-    /// Supported API versions: 5-6
+    /// Supported API versions: 5-7
     pub topics: indexmap::IndexMap<Uuid, LeaderAndIsrTopicError>,
 
     /// Other tagged fields
@@ -419,7 +419,7 @@ impl Default for LeaderAndIsrResponse {
 }
 
 impl Message for LeaderAndIsrResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 6 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
 }
 
 impl HeaderVersion for LeaderAndIsrResponse {

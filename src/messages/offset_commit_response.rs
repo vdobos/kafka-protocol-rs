@@ -17,19 +17,19 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-8
+/// Valid versions: 0-9
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct OffsetCommitResponsePartition {
     /// The partition index.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub partition_index: i32,
 
     /// The error code, or 0 if there was no error.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub error_code: i16,
 
     /// Other tagged fields
@@ -112,22 +112,22 @@ impl Default for OffsetCommitResponsePartition {
 }
 
 impl Message for OffsetCommitResponsePartition {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 9 };
 }
 
-/// Valid versions: 0-8
+/// Valid versions: 0-9
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct OffsetCommitResponseTopic {
     /// The topic name.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub name: super::TopicName,
 
     /// The responses for each partition in the topic.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub partitions: Vec<OffsetCommitResponsePartition>,
 
     /// Other tagged fields
@@ -234,22 +234,22 @@ impl Default for OffsetCommitResponseTopic {
 }
 
 impl Message for OffsetCommitResponseTopic {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 9 };
 }
 
-/// Valid versions: 0-8
+/// Valid versions: 0-9
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct OffsetCommitResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
     /// 
-    /// Supported API versions: 3-8
+    /// Supported API versions: 3-9
     pub throttle_time_ms: i32,
 
     /// The responses for each topic.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub topics: Vec<OffsetCommitResponseTopic>,
 
     /// Other tagged fields
@@ -352,7 +352,7 @@ impl Default for OffsetCommitResponse {
 }
 
 impl Message for OffsetCommitResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 9 };
 }
 
 impl HeaderVersion for OffsetCommitResponse {

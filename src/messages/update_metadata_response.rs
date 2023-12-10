@@ -17,14 +17,14 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct UpdateMetadataResponse {
     /// The error code, or 0 if there was no error.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub error_code: i16,
 
     /// Other tagged fields
@@ -102,7 +102,7 @@ impl Default for UpdateMetadataResponse {
 }
 
 impl Message for UpdateMetadataResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
 impl HeaderVersion for UpdateMetadataResponse {

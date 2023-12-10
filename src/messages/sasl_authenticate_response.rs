@@ -37,7 +37,7 @@ pub struct SaslAuthenticateResponse {
     /// Supported API versions: 0-2
     pub auth_bytes: Bytes,
 
-    /// The SASL authentication bytes from the server, as defined by the SASL mechanism.
+    /// Number of milliseconds after which only re-authentication over the existing connection to create a new session can occur.
     /// 
     /// Supported API versions: 1-2
     pub session_lifetime_ms: i64,

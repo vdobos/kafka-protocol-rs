@@ -935,9 +935,47 @@ impl<T: Encodable> Encoder<&T> for Struct {
     }
 }
 
+impl<T: Encodable> Encoder<&Option<T>> for Struct {
+    fn encode<B: ByteBufMut>(&self, buf: &mut B, option: &Option<T>) -> Result<(), EncodeError> {
+        if let Some(value) = option {
+            // this one byte represents optionality (1 for present)
+            Int8.encode(buf, 1)?;
+            value.encode(buf, self.version)?;
+            Ok(())
+        } else {
+            // this one byte represents optionality (-1 for missing)
+            Int8.encode(buf, -1)?;
+            Ok(())
+        }
+        
+    }
+    fn compute_size(&self, option: &Option<T>) -> Result<usize, EncodeError> {
+        if let Some(value) = option {
+            // +1 to size is the one additional byte that represents optionality of struct (value -1 for missing and 1 for present)
+            Ok(value.compute_size(self.version)? + 1)
+        } else {
+            // one byte that represents optionality (value -1 for missing and 1 for present)
+            Ok(1)
+        }
+    }
+}
+
 impl<T: Decodable> Decoder<T> for Struct {
     fn decode<B: ByteBuf>(&self, buf: &mut B) -> Result<T, DecodeError> {
         T::decode(buf, self.version)
+    }
+}
+
+impl<T: Decodable> Decoder<Option<T>> for Struct {
+    fn decode<B: ByteBuf>(&self, buf: &mut B) -> Result<Option<T>, DecodeError> {
+        // first i8 is optionality of struct (value -1 for missing and 1 for present)
+        let optional: i8 = Int8.decode(buf)?;
+        if optional == -1 {
+            Ok(None)
+        } else {
+            let decoded = T::decode(buf, self.version)?;
+            Ok(Some(decoded))
+        }
     }
 }
 

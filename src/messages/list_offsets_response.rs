@@ -17,19 +17,19 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct ListOffsetsPartitionResponse {
     /// The partition index.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no error.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub error_code: i16,
 
     /// The result offsets.
@@ -39,17 +39,17 @@ pub struct ListOffsetsPartitionResponse {
 
     /// The timestamp associated with the returned offset.
     /// 
-    /// Supported API versions: 1-7
+    /// Supported API versions: 1-8
     pub timestamp: i64,
 
     /// The returned offset.
     /// 
-    /// Supported API versions: 1-7
+    /// Supported API versions: 1-8
     pub offset: i64,
 
     /// 
     /// 
-    /// Supported API versions: 4-7
+    /// Supported API versions: 4-8
     pub leader_epoch: i32,
 
     /// Other tagged fields
@@ -216,22 +216,22 @@ impl Default for ListOffsetsPartitionResponse {
 }
 
 impl Message for ListOffsetsPartitionResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct ListOffsetsTopicResponse {
     /// The topic name
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub name: super::TopicName,
 
     /// Each partition in the response.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub partitions: Vec<ListOffsetsPartitionResponse>,
 
     /// Other tagged fields
@@ -338,22 +338,22 @@ impl Default for ListOffsetsTopicResponse {
 }
 
 impl Message for ListOffsetsTopicResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
-/// Valid versions: 0-7
+/// Valid versions: 0-8
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct ListOffsetsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
     /// 
-    /// Supported API versions: 2-7
+    /// Supported API versions: 2-8
     pub throttle_time_ms: i32,
 
     /// Each topic in the response.
     /// 
-    /// Supported API versions: 0-7
+    /// Supported API versions: 0-8
     pub topics: Vec<ListOffsetsTopicResponse>,
 
     /// Other tagged fields
@@ -456,7 +456,7 @@ impl Default for ListOffsetsResponse {
 }
 
 impl Message for ListOffsetsResponse {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 7 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
 }
 
 impl HeaderVersion for ListOffsetsResponse {

@@ -84,6 +84,12 @@ pub use broker_registration_request::BrokerRegistrationRequest;
 pub mod broker_registration_response;
 pub use broker_registration_response::BrokerRegistrationResponse;
 
+pub mod consumer_group_heartbeat_request;
+pub use consumer_group_heartbeat_request::ConsumerGroupHeartbeatRequest;
+
+pub mod consumer_group_heartbeat_response;
+pub use consumer_group_heartbeat_response::ConsumerGroupHeartbeatResponse;
+
 pub mod consumer_protocol_assignment;
 pub use consumer_protocol_assignment::ConsumerProtocolAssignment;
 
@@ -778,6 +784,11 @@ impl Request for AllocateProducerIdsRequest {
     type Response = AllocateProducerIdsResponse;
 }
 
+impl Request for ConsumerGroupHeartbeatRequest {
+    const KEY: i16 = 68;
+    type Response = ConsumerGroupHeartbeatResponse;
+}
+
 /// Valid API keys in the Kafka protocol.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ApiKey {
@@ -917,6 +928,8 @@ pub enum ApiKey {
     ListTransactionsKey = 66,
     /// API key for request AllocateProducerIdsRequest
     AllocateProducerIdsKey = 67,
+    /// API key for request ConsumerGroupHeartbeatRequest
+    ConsumerGroupHeartbeatKey = 68,
 }
 
 impl ApiKey {
@@ -991,6 +1004,7 @@ impl ApiKey {
             ApiKey::DescribeTransactionsKey => DescribeTransactionsRequest::header_version(version),
             ApiKey::ListTransactionsKey => ListTransactionsRequest::header_version(version),
             ApiKey::AllocateProducerIdsKey => AllocateProducerIdsRequest::header_version(version),
+            ApiKey::ConsumerGroupHeartbeatKey => ConsumerGroupHeartbeatRequest::header_version(version),
         }
     }
     /// Get the version of response header that needs to be prepended to this message
@@ -1064,6 +1078,7 @@ impl ApiKey {
             ApiKey::DescribeTransactionsKey => DescribeTransactionsResponse::header_version(version),
             ApiKey::ListTransactionsKey => ListTransactionsResponse::header_version(version),
             ApiKey::AllocateProducerIdsKey => AllocateProducerIdsResponse::header_version(version),
+            ApiKey::ConsumerGroupHeartbeatKey => ConsumerGroupHeartbeatResponse::header_version(version),
         }
     }
 }
@@ -1140,6 +1155,7 @@ impl TryFrom<i16> for ApiKey {
             x if x == ApiKey::DescribeTransactionsKey as i16 => Ok(ApiKey::DescribeTransactionsKey),
             x if x == ApiKey::ListTransactionsKey as i16 => Ok(ApiKey::ListTransactionsKey),
             x if x == ApiKey::AllocateProducerIdsKey as i16 => Ok(ApiKey::AllocateProducerIdsKey),
+            x if x == ApiKey::ConsumerGroupHeartbeatKey as i16 => Ok(ApiKey::ConsumerGroupHeartbeatKey),
             _ => Err(()),
         }
     }
@@ -1285,6 +1301,8 @@ pub enum RequestKind {
     ListTransactionsRequest(ListTransactionsRequest),
     /// AllocateProducerIdsRequest,
     AllocateProducerIdsRequest(AllocateProducerIdsRequest),
+    /// ConsumerGroupHeartbeatRequest,
+    ConsumerGroupHeartbeatRequest(ConsumerGroupHeartbeatRequest),
 }
 
 /// Wrapping enum for all responses in the Kafka protocol.
@@ -1427,6 +1445,8 @@ pub enum ResponseKind {
     ListTransactionsResponse(ListTransactionsResponse),
     /// AllocateProducerIdsResponse,
     AllocateProducerIdsResponse(AllocateProducerIdsResponse),
+    /// ConsumerGroupHeartbeatResponse,
+    ConsumerGroupHeartbeatResponse(ConsumerGroupHeartbeatResponse),
 }
 
 /// The ID of the requesting broker

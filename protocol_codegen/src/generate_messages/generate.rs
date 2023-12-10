@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -10,6 +10,8 @@ use super::code_writer::CodeWriter;
 use super::expr::{CmpType, Expr};
 use super::spec::{FieldSpec, PrimitiveType, Spec, SpecType, TypeSpec, VersionSpec};
 use std::cmp::Ordering;
+
+use std::path::MAIN_SEPARATOR;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct WrittenStruct {
@@ -230,6 +232,7 @@ fn prepare_field_type<W: Write>(
     w: &mut CodeWriter<W>,
     type_: &TypeSpec,
     field: &FieldSpec,
+    common_structs_map_keys: &HashMap<String, PreparedType>, 
     entity_types: &mut BTreeSet<EntityType>,
     valid_versions: VersionSpec,
     flexible_msg_versions: VersionSpec,
@@ -254,6 +257,7 @@ fn prepare_field_type<W: Write>(
                     w,
                     name,
                     fields,
+                    common_structs_map_keys,
                     entity_types,
                     valid_versions,
                     flexible_msg_versions,
@@ -271,6 +275,7 @@ fn prepare_field_type<W: Write>(
                 w,
                 elem,
                 field,
+                common_structs_map_keys,
                 entity_types,
                 valid_versions,
                 flexible_msg_versions,
@@ -280,9 +285,35 @@ fn prepare_field_type<W: Write>(
                     name,
                     map_key: Some(map_key),
                 }) => PreparedType::Map(map_key, name),
+                PreparedType::Struct(WrittenStruct {
+                    name,
+                    map_key: None,
+                }) if common_structs_map_keys.contains_key(&name) => {
+                    // raw unwrap here because it's guaranteed by match guard
+                    PreparedType::Map(Box::new(common_structs_map_keys.get(&name).unwrap().clone()), name.clone())
+                },
                 other => PreparedType::Array(Box::new(other)),
             }
         }
+    })
+}
+
+fn prepare_common_struct_key_type(type_: &TypeSpec, field: &FieldSpec, entity_types: &mut BTreeSet<EntityType>) -> Result<PreparedType, Error> {
+    Ok(match type_ {
+        TypeSpec::Primitive(prim) => {
+            if let Some(entity_type) = &field.entity_type {
+                let entity_type = EntityType {
+                    inner: *prim,
+                    name: entity_type.to_pascal_case(),
+                    doc: field.about.clone(),
+                };
+                entity_types.insert(entity_type.clone());
+                PreparedType::Entity(entity_type)
+            } else {
+                PreparedType::Primitive(*prim)
+            }
+        }
+        _ => panic!("Found key field in common structs that is not primitive or entity type (unimplemented use-case)"),
     })
 }
 
@@ -900,6 +931,7 @@ fn write_struct_def<W: Write>(
     w: &mut CodeWriter<W>,
     name: &str,
     fields: &[FieldSpec],
+    common_structs_map_keys: &HashMap<String, PreparedType>, 
     entity_types: &mut BTreeSet<EntityType>,
     valid_versions: VersionSpec,
     flexible_msg_versions: VersionSpec,
@@ -914,6 +946,7 @@ fn write_struct_def<W: Write>(
             w,
             &field.type_,
             field,
+            common_structs_map_keys,
             entity_types,
             valid_versions,
             flexible_msg_versions,
@@ -1225,18 +1258,33 @@ pub fn generate(
     let struct_name = spec.name.clone();
     let module_name = struct_name.to_snake_case();
 
-    let file_name = format!("{}/{}.rs", output_path, module_name);
+    let file_name = format!("{}{}{}.rs", output_path, MAIN_SEPARATOR, module_name);
     let mut file = CodeWriter::new(BufWriter::new(File::create(file_name)?));
 
     let valid_versions = spec.valid_versions;
     let flexible_msg_versions = spec.flexible_versions.unwrap_or_default();
 
     write_file_header(&mut file, &struct_name)?;
+
+    let mut common_structs_map_keys: HashMap<String, PreparedType> = HashMap::new();
+
+    for common_struct in &spec.common_structs {
+        let num_map_keys = common_struct.fields.iter().filter(|&field| field.map_key).count();
+
+        for field in &common_struct.fields {
+            if field.map_key && num_map_keys == 1 {
+                common_structs_map_keys.insert(common_struct.name.clone(), prepare_common_struct_key_type(&field.type_, field, entity_types)?);
+                break;
+            };
+        }
+    }
+
     for common_struct in &spec.common_structs {
         write_struct_def(
             &mut file,
             &common_struct.name,
             &common_struct.fields,
+            &common_structs_map_keys,
             entity_types,
             valid_versions,
             flexible_msg_versions,
@@ -1246,6 +1294,7 @@ pub fn generate(
         &mut file,
         &struct_name,
         &spec.fields,
+        &common_structs_map_keys,
         entity_types,
         valid_versions,
         flexible_msg_versions,

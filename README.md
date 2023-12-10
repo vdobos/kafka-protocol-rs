@@ -1,4 +1,22 @@
-# Kafka-Protocol [![Build](https://github.com/tychedelia/kafka-protocol-rs/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/0x1991babe/kafka-protocol-rs/actions/workflows/build-and-test.yml) [![crates.io](https://img.shields.io/crates/v/kafka-protocol.svg)](https://crates.io/crates/kafka-protocol) [![docs.rs](https://img.shields.io/docsrs/kafka-protocol)](https://docs.rs/kafka-protocol)
+# Kafka-Protocol
+
+Update of forked [kafka-protocol-rs](https://github.com/tychedelia/kafka-protocol-rs) to support kafka 3.6.0, with additional update to support windows filesystem for api generation and java-client compatible snappy compression. 
+
+List of changes:
+
+- replaced hardcoded filepath separators in generator with "std::path::MAIN_SEPARATOR" const to work on both windows and *nix systems
+- wrapped snappy compression with code adapted from golang and java to support custom xerial snappy framing used by "reference" java kafka client
+- updated generator to compile with Kafka 3.6.0:
+    + moved polled kafka commit for generator to Kafka release tag 3.6.0
+    + re-generated protocol APIs with kafka 3.6.0
+    + added new "latest_version_unstable" to Spec struct with proper annotation
+    + added encoder and decoder impl for Option\<T> for Struct to cover optional field in ConsumerGroupHeartbeat API using Java client source code as reference
+    + added support for map keys defined in "commonStructs" section of  protocol API definitions to properly generate AddPartitionsToTxnRequest and AddPartitionsToTxnResponse
+    + added missing/new error definitions
+
+DISCLAIMER/WARNING: Created by Rust novice. All the changes have been made to satisfy my OCD on generator not compiling with latest kafka version as a side-activity of playing with Rust for the first time, by trying to poll and put to kafka using 0.7.0 version of this library. All changes besides snappy and filepath separator changes are not tested !
+
+Continuing original description ...
 
 Rust implementation of the [Kafka wire protocol](https://kafka.apache.org/protocol.html).
 

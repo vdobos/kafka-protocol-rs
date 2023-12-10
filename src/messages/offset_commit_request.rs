@@ -17,24 +17,24 @@ use crate::protocol::{
 };
 
 
-/// Valid versions: 0-8
+/// Valid versions: 0-9
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct OffsetCommitRequestPartition {
     /// The partition index.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub partition_index: i32,
 
     /// The message offset to be committed.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub committed_offset: i64,
 
     /// The leader epoch of this partition.
     /// 
-    /// Supported API versions: 6-8
+    /// Supported API versions: 6-9
     pub committed_leader_epoch: i32,
 
     /// The timestamp of the commit.
@@ -44,7 +44,7 @@ pub struct OffsetCommitRequestPartition {
 
     /// Any associated metadata the client wants to keep.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub committed_metadata: Option<StrBytes>,
 
     /// Other tagged fields
@@ -178,22 +178,22 @@ impl Default for OffsetCommitRequestPartition {
 }
 
 impl Message for OffsetCommitRequestPartition {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 9 };
 }
 
-/// Valid versions: 0-8
+/// Valid versions: 0-9
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct OffsetCommitRequestTopic {
     /// The topic name.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub name: super::TopicName,
 
     /// Each partition to commit offsets for.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub partitions: Vec<OffsetCommitRequestPartition>,
 
     /// Other tagged fields
@@ -300,32 +300,32 @@ impl Default for OffsetCommitRequestTopic {
 }
 
 impl Message for OffsetCommitRequestTopic {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 9 };
 }
 
-/// Valid versions: 0-8
+/// Valid versions: 0-9
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct OffsetCommitRequest {
     /// The unique group identifier.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub group_id: super::GroupId,
 
-    /// The generation of the group.
+    /// The generation of the group if using the generic group protocol or the member epoch if using the consumer protocol.
     /// 
-    /// Supported API versions: 1-8
-    pub generation_id: i32,
+    /// Supported API versions: 1-9
+    pub generation_id_or_member_epoch: i32,
 
     /// The member ID assigned by the group coordinator.
     /// 
-    /// Supported API versions: 1-8
+    /// Supported API versions: 1-9
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
     /// 
-    /// Supported API versions: 7-8
+    /// Supported API versions: 7-9
     pub group_instance_id: Option<StrBytes>,
 
     /// The time period in ms to retain the offset.
@@ -335,7 +335,7 @@ pub struct OffsetCommitRequest {
 
     /// The topics to commit offsets for.
     /// 
-    /// Supported API versions: 0-8
+    /// Supported API versions: 0-9
     pub topics: Vec<OffsetCommitRequestTopic>,
 
     /// Other tagged fields
@@ -358,7 +358,7 @@ impl Encodable for OffsetCommitRequest {
             types::String.encode(buf, &self.group_id)?;
         }
         if version >= 1 {
-            types::Int32.encode(buf, &self.generation_id)?;
+            types::Int32.encode(buf, &self.generation_id_or_member_epoch)?;
         }
         if version >= 1 {
             if version >= 8 {
@@ -406,7 +406,7 @@ impl Encodable for OffsetCommitRequest {
             total_size += types::String.compute_size(&self.group_id)?;
         }
         if version >= 1 {
-            total_size += types::Int32.compute_size(&self.generation_id)?;
+            total_size += types::Int32.compute_size(&self.generation_id_or_member_epoch)?;
         }
         if version >= 1 {
             if version >= 8 {
@@ -455,7 +455,7 @@ impl Decodable for OffsetCommitRequest {
         } else {
             types::String.decode(buf)?
         };
-        let generation_id = if version >= 1 {
+        let generation_id_or_member_epoch = if version >= 1 {
             types::Int32.decode(buf)?
         } else {
             -1
@@ -501,7 +501,7 @@ impl Decodable for OffsetCommitRequest {
         }
         Ok(Self {
             group_id,
-            generation_id,
+            generation_id_or_member_epoch,
             member_id,
             group_instance_id,
             retention_time_ms,
@@ -515,7 +515,7 @@ impl Default for OffsetCommitRequest {
     fn default() -> Self {
         Self {
             group_id: Default::default(),
-            generation_id: -1,
+            generation_id_or_member_epoch: -1,
             member_id: Default::default(),
             group_instance_id: None,
             retention_time_ms: -1,
@@ -526,7 +526,7 @@ impl Default for OffsetCommitRequest {
 }
 
 impl Message for OffsetCommitRequest {
-    const VERSIONS: VersionRange = VersionRange { min: 0, max: 8 };
+    const VERSIONS: VersionRange = VersionRange { min: 0, max: 9 };
 }
 
 impl HeaderVersion for OffsetCommitRequest {
