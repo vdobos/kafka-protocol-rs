@@ -21,7 +21,7 @@ use super::{Compressor, Decompressor};
 /// Code for xerial snappy seen here was adapted from
 /// https://github.com/eapache/go-xerial-snappy/blob/master/snappy.go
 /// 
-/// Alternative golang implementation (used by non-confluent golang kafka clients), mentioned for completness:
+/// Alternative (and more robust) golang implementation (used by non-confluent golang kafka clients), can be found here:
 /// https://github.com/klauspost/compress/tree/master/snappy/xerial
 pub struct Snappy;
 
