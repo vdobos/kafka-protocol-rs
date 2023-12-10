@@ -14,7 +14,7 @@ List of changes:
     + added support for map keys defined in "commonStructs" section of  protocol API definitions to properly generate AddPartitionsToTxnRequest and AddPartitionsToTxnResponse
     + added missing/new error definitions
 
-DISCLAIMER/WARNING: Created by Rust novice. All the changes have been made to satisfy my OCD on generator not compiling with latest kafka version as a side-activity of playing with Rust for the first time, by trying to poll and put to kafka using 0.7.0 version of this library. All changes besides snappy and filepath separator changes are not tested !
+DISCLAIMER/WARNING: Created by Rust novice. All the changes have been made to satisfy my OCD on generator not compiling with latest kafka version as a side-activity of playing with Rust for the first time (by trying to [poll from and put into](https://github.com/vdobos/poc-kafka-caller-rs) kafka using 0.7.0 version of this library. All changes besides snappy and filepath separator changes are not tested !
 
 Continuing original description ...
 
